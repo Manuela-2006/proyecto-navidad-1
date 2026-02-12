@@ -1,16 +1,23 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_ANON_KEY
+function getSupabase() {
+  const supabaseUrl = process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase environment variables")
+  if (!supabaseUrl || !supabaseKey) return null
+  return createClient(supabaseUrl, supabaseKey)
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey)
-
 export async function GET() {
+  const supabase = getSupabase()
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Missing Supabase environment variables" },
+      { status: 500 },
+    )
+  }
+
   const { data, error } = await supabase
     .from("incidencias")
     .select("*")
@@ -24,6 +31,14 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const supabase = getSupabase()
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Missing Supabase environment variables" },
+      { status: 500 },
+    )
+  }
+
   const body = await req.json().catch(() => null)
   if (!body) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
