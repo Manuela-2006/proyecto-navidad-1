@@ -1,5 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource/libre-baskerville";
+@import "@fontsource/montserrat";
+
+.font-montserrat {
+  font-family: "Montserrat", sans-serif;
+}
 
 @custom-variant dark (&:is(.dark *));
 

@@ -31,21 +31,26 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-[#F5F5F5] p-6 shadow-lg",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 opacity-50 hover:opacity-100">
-        <XIcon className="h-4 w-4" />
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
+  <DialogOverlay />
+  <DialogPrimitive.Content
+    ref={ref}
+    className={cn(
+      "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-[#F5F5F5] p-6 shadow-lg",
+      className
+    )}
+    {...props}
+  >
+    <DialogPrimitive.Description className="sr-only">
+      Descripción del cuadro de diálogo
+    </DialogPrimitive.Description>
+
+    {children}
+
+    <DialogPrimitive.Close className="absolute right-4 top-4 opacity-50 hover:opacity-100">
+      <XIcon className="h-4 w-4" />
+    </DialogPrimitive.Close>
+  </DialogPrimitive.Content>
+</DialogPortal>
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
