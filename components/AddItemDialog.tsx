@@ -38,31 +38,7 @@ export function AddItemDialog() {
   const [descripcion, setDescripcion] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const saved = localStorage.getItem("incidencia-form")
-    if (!saved) return
-
-    try {
-      const parsed = JSON.parse(saved) as {
-        aula: string | null
-        tipo: string | null
-        descripcion: string
-      }
-      setAula(parsed.aula ?? null)
-      setTipo(parsed.tipo ?? null)
-      setDescripcion(parsed.descripcion ?? "")
-    } catch {
-      localStorage.removeItem("incidencia-form")
-    }
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem(
-      "incidencia-form",
-      JSON.stringify({ aula, tipo, descripcion }),
-    )
-  }, [aula, tipo, descripcion])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (submitted) setSubmitted(false)
@@ -71,12 +47,14 @@ export function AddItemDialog() {
 
   const prioridad = tipo ? PRIORITY_BY_TYPE[tipo] : null
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!aula || !tipo || !descripcion.trim()) {
       setSubmitted(false)
       setError("Necesitas rellenar todos los campos.")
       return
     }
+
+    setLoading(true)
 
     const incidencia = {
       aula,
@@ -85,26 +63,29 @@ export function AddItemDialog() {
       prioridad, // number | null
     }
 
-    const raw = localStorage.getItem("incidencias")
-    const prev = raw ? (JSON.parse(raw) as typeof incidencia[]) : []
-    const next = [...prev, incidencia]
-    localStorage.setItem("incidencias", JSON.stringify(next))
+    const res = await fetch("/api/incidencias", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(incidencia),
+    })
 
-    // Por ahora solo lo mostramos por consola
-    // Más adelante aquí irá el fetch al backend
-    console.log("Incidencia enviada:", incidencia)
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      setSubmitted(false)
+      setError(
+        data?.error ??
+          "No se pudo enviar la incidencia. Inténtalo de nuevo.",
+      )
+      setLoading(false)
+      return
+    }
 
     setError(null)
     setSubmitted(true)
     setAula(null)
     setTipo(null)
     setDescripcion("")
-    localStorage.removeItem("incidencia-form")
-  }
-
-  const handleOpenPreview = () => {
-    const win = window.open("/incidencias", "_blank")
-    if (!win) return
+    setLoading(false)
   }
 
   return (
@@ -202,17 +183,12 @@ export function AddItemDialog() {
 
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 rounded-md bg-[#D46D95] hover:bg-[#c25f88] text-white"
+            disabled={loading}
+            className="px-4 py-2 rounded-md bg-[#D46D95] hover:bg-[#c25f88] text-white disabled:opacity-60"
           >
-            Enviar
+            {loading ? "Enviando..." : "Enviar"}
           </button>
 
-          <button
-            onClick={handleOpenPreview}
-            className="px-4 py-2 rounded-md bg-[#124D58] hover:bg-[#0F3F48] text-white"
-          >
-            Ver datos
-          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
